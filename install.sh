@@ -1,58 +1,40 @@
-#get current dir
 CURR_DIR=$(pwd)
 
 BLUE='\033[1;34m'
 GREY='\033[0;37m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-echo "${BLUE}This will set up momentum_sync for you.${NC}"
-echo "First you need to get your momentum client ID \n"
-echo "Press enter to open chrome / momentum and then come back here..."
-
-read $done;
-open /Applications/Google\ Chrome.app/ -nF;
-
-echo "1. In Chrome / Momentum click on the settings cog bottom left"
-echo "2. Click on About"
-echo "3. Double click on the version number under the momentum logo"
-echo "4. Copy the ID that is then shown"
-echo "5. Paste it below..."
+printf "${BLUE}This will set up momentum_sync for you.${NC}\n\n"
+printf "First you need to get your momentum client ID\n\n"
+printf "1. In Chrome / Momentum click on the settings cog bottom left\n"
+printf "2. Click on About\n"
+printf "3. Double click on the version number under the momentum logo\n"
+printf "4. Copy the ID that is then shown\n"
+printf "5. Paste it below...\n"
 
 read client_id
 
-echo "client_id='$client_id'" > config.py
+printf "client_id='%s'\n" "$client_id" > config.py
 
-echo "\n\nGreat, now you can manually run with the command 'python ./sync_momentum.py' \n"
-echo "${BLUE}Would you like to automatically run sync_momentum once a day?${NC}"
-echo "${GREY}you can remove this with ./uninstall.sh later${NC}"
-echo "y/n ?"
+printf "\n\nGreat, now you can manually run with the command 'python3 ./sync_momentum.py'\n\n"
+printf "${BLUE}Would you like to set up automatic wallpaper switching?${NC}\n"
+printf "${GREY}This runs 3x daily (08:00, 13:00, 20:00) and picks a\nwallpaper matching the time of day.${NC}\n"
+printf "${GREY}You can remove this with ./uninstall.sh later${NC}\n"
+printf "y/n? "
 
 read auto
 
-if [ "$auto" == "y" ]; then
-
-  #add the path to the launch agent template
-  sed "s|{CURR_DIR}|$CURR_DIR|g" download_agent/me.mattbryson.momentum_download.agent.plist.tpl > download_agent/me.mattbryson.momentum_download.agent.plist
-  #check launch agent folder exists..
-  mkdir -p ~/Library/LaunchAgents
-  #copy and install the launch agent
-  cp download_agent/me.mattbryson.momentum_download.agent.plist ~/Library/LaunchAgents/ && launchctl load  ~/Library/LaunchAgents/me.mattbryson.momentum_download.agent.plist
+if [ "$auto" = "y" ]; then
+  SYSTEMD_DIR="${HOME}/.config/systemd/user"
+  mkdir -p "$SYSTEMD_DIR"
+  sed "s|{CURR_DIR}|$CURR_DIR|g" download_agent/momentum-sync.service.tpl > "$SYSTEMD_DIR/momentum-sync.service"
+  cp download_agent/momentum-sync.timer "$SYSTEMD_DIR/momentum-sync.timer"
+  systemctl --user daemon-reload
+  systemctl --user enable --now momentum-sync.timer
 fi
 
-echo "\n\n${BLUE}Awesome, Would you like to set all your desktops to randomly show these images ?${NC}"
-echo "${GREY}You can chnage this in System Preferences > Desktop and Screensaver${NC}"
-echo "y/n?"
+printf "syncing pictures...\n"
+python3 ./sync_momentum.py
 
-read update
-
-if [ "$update" == "y" ]; then
-  osascript -e "tell application \"System Events\" to set pictures folder of every desktop to \"${CURR_DIR}/pictures\""
-  osascript -e "tell application \"System Events\" to set change interval of every desktop to 1800"
-  osascript -e "tell application \"System Events\" to set random order of every desktop to true"
-fi
-
-echo "syncing pictures..."
-python ./sync_momentum.py
-
-echo "\nYour all done";
-echo "${GREY}To uninstall you can run ./uninstall.sh${NC}";
+printf "\nYour all done\n"
+printf "${GREY}To uninstall you can run ./uninstall.sh${NC}\n"
