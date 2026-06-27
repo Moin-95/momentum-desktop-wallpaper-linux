@@ -1,5 +1,7 @@
 [Unit]
 Description=Momentum wallpaper sync and switch
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=oneshot

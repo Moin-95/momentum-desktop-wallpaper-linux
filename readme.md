@@ -1,11 +1,16 @@
-# Momentum Desktop Images
+# Momentum Desktop Wallpaper Linux
 
 Downloads the Momentum daily backgrounds to your computer and optionally sets them as your desktop wallpaper.
 
+## Requirements
+
+- Python 3
+- systemd (optional, for automatic wallpaper switching)
+
 ## Installation
 
-    git clone https://github.com/mattbryson/momentum-desktop-images.git
-    cd momentum-desktop-images
+    git clone https://github.com/moin-ek/momentum-desktop-wallpaper-linux.git
+    cd momentum-desktop-wallpaper-linux
     ./install.sh
 
 ## Uninstallation

@@ -20,3 +20,12 @@ __pycache__/
 .venv/
 env/
 venv/
+
+# Sync state
+.sync_state.json
+
+# Editor temp files
+*.swp
+*.swo
+*~
+.DS_Store

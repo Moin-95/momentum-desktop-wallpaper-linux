@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
-python3 "$DIR/sync_momentum.py"
+python3 "$DIR/bulk_download.py" || printf "Download failed\n" >&2
 
 HOUR=$(date +%H)
 
@@ -15,10 +15,10 @@ else
   period="night"
 fi
 
-img=$(find "$DIR/pictures" -type f -name "${period}_*" 2>/dev/null | shuf -n1)
+img=$(find "$DIR/pictures" -maxdepth 1 -type f -name "${period}_*" 2>/dev/null | shuf -n1)
 
 if [ -z "$img" ]; then
-  img=$(find "$DIR/pictures" -type f 2>/dev/null | shuf -n1)
+  img=$(find "$DIR/pictures" -maxdepth 1 -type f 2>/dev/null | shuf -n1)
 fi
 
 if [ -z "$img" ]; then
@@ -28,6 +28,8 @@ fi
 
 if command -v plasma-apply-wallpaperimage &>/dev/null; then
   plasma-apply-wallpaperimage "$img"
+elif command -v plasma-apply-wallpaper &>/dev/null; then
+  plasma-apply-wallpaper -p "$img"
 elif command -v gsettings &>/dev/null; then
   gsettings set org.gnome.desktop.background picture-uri "file://${img}"
   gsettings set org.gnome.desktop.background picture-uri-dark "file://${img}"
@@ -35,6 +37,10 @@ elif command -v feh &>/dev/null; then
   feh --bg-fill "$img"
 elif command -v xwallpaper &>/dev/null; then
   xwallpaper --zoom "$img"
+elif command -v swaymsg &>/dev/null; then
+  swaymsg output "*" bg "$img" fill
+elif command -v hyprctl &>/dev/null && command -v hyprpaper &>/dev/null; then
+  hyprctl hyprpaper wallpaper ",$img"
 else
   printf "No supported wallpaper tool found. Apply manually:\n  %s\n" "$img"
 fi
